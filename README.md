@@ -1,9 +1,61 @@
-# lord
+# Lord – A Conceptual Container Orchestrator  
 
-Welcome to Lord
+**Lord** is an experimental container orchestration system designed to explore new approaches to:  
+- Communication among nodes  
+- Persistence strategies  
+- General orchestration efficiency  
 
-This a conceptual container orchestrator. Its aims are to test new and more efficient ways of communication among nodes, alternative forms of persistence and whatever else seems exciting.
+This project is in its **early development stages**. It is primarily conceived and maintained by **Gabriel Fernandez**, but it is intended as an **open project**—contributions, ideas, and collaboration are welcome.  
 
-It's now in its early stages of development and its main conceiver, ideologist, curator, administrator, guru and führer is Gabriel Fernandez. This is an open project though and all ideas will be apreciated. If you take a taste for it, administration will merily welcome you to colaborate and help making those difficult decisions.
+---
 
-Feel free to redistribute, copy, alter, come up with a private product that steals its code and anything else you wish to do, except for patent it, since, once again, this is a public project aimed to help the general community to learn and deal with containerization of applications.
+## Project Goals  
+
+- Prototype alternative communication models between nodes  
+- Experiment with persistence mechanisms  
+- Provide a flexible framework for testing orchestration concepts  
+- Encourage community-driven innovation in container management  
+
+---
+
+## Contribution  
+
+All forms of contributions are welcome:  
+- Submitting ideas and proposals  
+- Implementing new features  
+- Reviewing and improving existing code  
+- Discussing architecture and design decisions  
+
+If you’re interested in helping shape the project, feel free to fork the repository, open pull requests, or start discussions.  
+
+---
+
+## Licensing  
+
+MIT License  
+
+Copyright (c) 2025 Gabriel Fernandez  
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:  
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.  
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.  
+
+---
+
+## Status  
+
+🚧 **Work in Progress**: The project is not production-ready. Expect frequent changes and experimentation.  
