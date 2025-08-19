@@ -3,12 +3,18 @@ Service Module
 """
 from typing import Dict
 
+import uuid
+
+
 from node import Node
 from load_balancer import LoadBalancer
 from instance import Instance
 from pydantic import BaseModel, Field
+from scheduler import scheduler
+from util.name_generator import NameGenerator
 
 from util import consts
+
 
 class Service(BaseModel):
     """
@@ -30,7 +36,7 @@ class Service(BaseModel):
     nodes: Dict[str, Node] = {}
     load_balancers: Dict[str, LoadBalancer] = {}
 
-    def add_instance(self, instance: Instance) -> None:
+    def add_instance(self) -> str:
         """
         Adds an instance to this Service. The instance's node
         id is used to determine to which node it should go.
@@ -42,12 +48,13 @@ class Service(BaseModel):
         """
         if len(self.instances) >= consts.MAX_INSTANCES:
             raise ValueError(f"Service {self.name} has the maximum instance "
-                             f"count and cannot add instance {instance.name} ")
-        if instance.node_id is not None and instance.node_id in self.nodes:
-            self.nodes[instance.node_id].add_instance(instance)
-            self.instances[instance.id] = instance
-        raise ValueError(f"Instance {instance.name} has inexistent node id "
-                         f"{instance.node_id}.")
+                             f"count and cannot add another instance.")
+        new_instance = Instance(id=str(uuid.uuid4()),
+                                name=NameGenerator.generate_name(),
+                                node_id=scheduler.get_next(list(self.nodes.values())))
+        self.nodes[new_instance.node_id].add_instance(new_instance)
+        self.instances[new_instance.id] = new_instance
+        return new_instance.id
 
 
     def remove_instance(self, instance_id: str) -> bool:

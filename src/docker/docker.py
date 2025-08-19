@@ -182,7 +182,3 @@ def get_ip_by_name(name):
                 found = True
     return address
 
-         
-    
-      
-
