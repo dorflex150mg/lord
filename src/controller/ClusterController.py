@@ -4,9 +4,9 @@ class ClusterController():
 #  def __init__(self):
 
   def createCluster(self, cluster_id, name):
-      if clusters:
+      if self.clusters:
           for cluster in self.clusters:
-              if cluster.getClusterId() == cluster_id):
+              if cluster.getClusterId() == cluster_id:
                   raise ValueError("Cluster id already exists. Choose another")
               elif cluster.getName() == name:
                   raise ValueError("Cluster name already exists. Choose another")
