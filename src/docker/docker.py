@@ -1,184 +1,237 @@
-import argparse
+"""
+Module containing docker bindings. This high-level module
+Simply makes subprocess calls to the docker CLI.
+"""
+from typing import Dict, List
 import subprocess
-import sys
 
-ps_values = {'CONTAINER_ID': 0, 'IMAGE': 1, 'COMMAND': 2, 'CREATED': 3, 'STATUS': 4, 'PORTS': 5, 'NAMES': 6}
-inspect_get_ip_query = '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
-default_volume_path = '/src/volume'
-networkID_string_start_position = 14
-networkID_string_end_position = -2
-IPAddress_string_start_position = 14
-IPAddress_string_end_position = -2
+ps_values: Dict[str, int] = {
+    "CONTAINER_ID": 0,
+    "IMAGE": 1,
+    "COMMAND": 2,
+    "CREATED": 3,
+    "STATUS": 4,
+    "PORTS": 5,
+    "NAMES": 6,
+}
+INSPECT_GET_IP_QUERY = "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}"
+DEFAULT_VOLUME_PATH = "/src/volume"
+NETWORKID_STRING_START_POSITION = 14
+NETWORKID_STRING_END_POSITION = -2
+IPADDRESS_STRING_START_POSITION = 14
+IPADDRESS_STRING_END_POSITION = -2
+
+def build(tag_name: str, *opts: str) -> int:
+    """
+    Builds an image with the given parameters (quiet mode by default)
+    Args:
+        opts (args): list of arguments to be added to the build call.
+    Returns:
+        int: The process' exit signal.
+    """
+    args = ["docker", "build", "-t", tag_name] + list(opts)
+    args.append(".")
+    return subprocess.call(args)
 
 
-#PRIVATE; EXECUTE: runs the bash command built by the api functions with the giver arguments
-def _execute(args, opts, stdout = False):
-    for o in opts:
-        args.append(o)
-    result = None
-    if stdout:
-        result = subprocess.check_output(args)
-    else:
-        result = not subprocess.call(args)
-    return result
+def rmi(image_id: str, *opts: str) -> int:
+    """
+    Removes an image with the given parameters. 
+    Forcefully removes containers running with that image.
+    Args:
+        image_id (str): the id of the image to be removed.
+        opts (args): list of arguments to be added to the rmi call.
+    Returns:
+        int: The process' exit signal.
+    """
+    args = ["docker", "rmi"] + list(opts)
+    args.append(image_id)
+    return subprocess.call(args)
 
-#PRIVATE; EXECUTE_ORDERED: same as execute, but the opts arguments can be inserted in the desired order
-def _execute_ordered(args, opts, opts_order, stdout = False):
-     position = 0
-     for o in opts:
-         args.insert(opts_order[position], o)
-         position += 1
-     result = None
-     if stdout:
-         result = subprocess.check_output(args)
-     else:
-         result = not subprocess.call(args)
-     return result
 
-#BUILD: builds an image with the given parameters (quiet mode by default)
-def build(*opts):
-    args = ['docker', 'build', '-q']
-    opts = list(opts)
-    return _execute(args, opts)
+def run(image_id: str, *opts: str) -> int:
+    """
+    Creates an instance with the given parameters
+    Args:
+        opts (args): list of arguments to be added to the run call.
+    Returns:
+        int: The process' exit signal.
+    """
+    args = ["docker", "run"] + list(opts)
+    args.append(image_id)
+    return subprocess.call(args)
 
-#REMOVE_IMAGE: removes an image with the given parameters. Forcefully removes containers running with that image
-def rmi(*opts):
-    args = ['docker', 'rmi', '-f']
-    opts = list(opts)
-    return _execute(args, opts)
 
-#RUN: creates an instance with the given parameters
-def run(*opts):
-    args = ['docker', 'run']    
-    opts = list(opts)
-    return _execute(args, opts)
+def run_get_name(*opts: str) -> str:
+    """
+    Creates an instance with the given parameters and returns its name.
+    Args:
+        opts (args): list of arguments to be added to the run call.
+    Returns:
+        str: The newly created docker container name.
+    """
+    args = ["docker", "run"] + list(opts)
+    return subprocess.check_output(args, stderr=subprocess.STDOUT).decode()
 
-def run_get_name(*opts):
-    args = ['docker', 'run']
-    opts = list(opts)
-    return _execute(args, opts, stdout = True)
 
-#REMOVE_INSTANCE: removes an instances with the given parameters
-def rm(*opts):
-    args = ['docker', 'rm']
-    opts = list(opts)
-    return _execute(args, opts)
+def rm(container_id: str, *opts: str) -> int:
+    """
+    Removes an container.
+    Args:
+        container_id (str): the id of the container to be removed.
+        opts (args): list of arguments to be added to the rm call.
+    Returns:
+        int: The process' exit signal.
+    """
+    args = ["docker", "rm", container_id] + list(opts)
+    return subprocess.call(args)
 
-#STOP_INSTANCE: stops an instance with the given parameters
-def stop(*opts):
-    args = ['docker', 'stop']
-    opts = list(opts)
-    return _execute(args, opts)
 
-#PS: lists all instances, running and exited
-def ps(*opts):
-    args = ['docker', 'ps', '-a']
-    opts = list(opts)
-    return _execute(args, opts, stdout = True)
+def stop(container_id: str, *opts: str) -> int:
+    """
+    Stops a running container. 
+    Args:
+        opts (args): list of arguments to be added to the stop call.
+    Returns:
+        int: The process' exit signal.
+    """
+    args = ["docker", "stop", container_id] + list(opts)
+    return subprocess.call(args)
 
-#IMAGES: Lists all images
-def images(*opts):
-    args = ['docker', 'images']
-    opts = list(opts)
-    return _execute(args, opts, stdout = True)
 
-#INSPECT: returns metadata from a container with the giver paramenters
-def inspect(*opts):
-    args = ['docker', 'inspect']
-    opts = list(opts)
-    return _execute(args, opts, stdout = True)
+def ps(*opts: str) -> List[str]:
+    """
+    Lists the containers running currently. Removes the first and last elements. 
+    Args:
+        opts (args): list of arguments to be added to the ps call.
+    Returns:
+        List[str]: A list with the docker id of the containers running 
+        in this node.
+    """
+    args = ["docker", "ps", "-q"] + list(opts)
+    return subprocess.check_output(args, stderr=subprocess.STDOUT).decode().split(sep='\n')
 
-#CREATE_VOLUME: creates a volume with the given parameters
-def create_volume(*opts):
-    args = ['docker', 'volume', 'create', '-d', 'local', '--opt', 'type=tmpfs', '--opt', 'device=tmpfs', '--opt', '--name']
-    opts = list(opts)
-    positions = [10, 12]
-    return _execute_ordered(args, opts, positions, stdout = True)
+def images(*opts: str) -> int:
+    """
+    Lists the docker images stored on this node. 
+    Args:
+        opts (args): list of arguments to be added to the images call.
+    Returns:
+        List[str]: A list with the docker id of the images stored 
+        in this node.
+    """
+    args = ["docker", "images"] + list(opts) + list(opts)
+    return subprocess.call(args)
 
-#REMOVE_VOLUME: removes a volume with the given parameters
-def remove_volume(*opts):
-    args = ['docker', 'volume', 'rm']
-    opts = list(opts)
-    return _execute(args, opts)
 
-#CP: copies files from instances to containers and vice versa
-def cp(*opts):
-    args = ['docker', 'cp']
-    opts = list(opts)
-    return _execute(args, opts)
+def inspect(resource_id: str, *opts: str) -> str:
+    """
+    Returns metadata from a docker resource.
+    Args:
+        opts (args): list of arguments to be added to the inspect call.
+    Returns:
+        str: a string with the the output of the inspect call. 
+    """
+    args = ["docker", "inspect", resource_id] + list(opts)
+    return subprocess.check_output(args, stderr=subprocess.STDOUT).decode()
 
-#CREATE_NETWORK: creates a network with the given parameters
-def create_network(*opts):
-    args = ['docker', 'network', 'create', '--driver', 'bridge']
-    opts = list(opts) 
-    return _execute(args, opts)
 
-#REMOVE_NETWORK: removes a network with the given parameter
-def remove_network(*opts):
-    args = ['docker', 'network', 'rm']
-    opts = list(opts)
-    return _execute(args, opts)
+def create_volume(host_path: str, container_path: str, *opts: str) -> int:
+    """
+    Creates a volume binding `host_path` and `container_path`.
+    Args:
+        host_path (str): the path on the host.
+        container_path (str): the target path on the container.
+    Returns:
+        int: The process' exit signal.
+    """
+    args = [
+        "docker",
+        "volume",
+        "create",
+        "-d",
+        "-v",
+        f"{host_path}:{container_path}",
+    ] + list(opts)
+    return subprocess.call(args)
 
-#GET_INSTANCE_NAMES_BY_ID: return the name of the containers running an image by image id
-def get_instance_names_by_id(id):
-    names = []
-    instances = ps('--filter', 'ancestor=' + id, '--filter', 'status=running')
-    instances_lines = instances.split('\n')
-    instances_lines.pop(0)
-    instances_lines.pop(-1)
-    for line in instances_lines:
-        line = line.split()
-        names.append(line[-1])
-    return names 
 
-#GET_IP_LIST_BY_ID: retuns the ips from containers running an image by image id
-def get_ip_list_by_id(id):
-    names = get_instance_names_by_id(id)
-    address = ""
-    ips = []
-    for name in names:
-        found = False
-        raw_inspect = inspect(name)
-        inspect_lines = raw_inspect.split('\n')
-        for line in inspect_lines:
-            line = line.strip()
-            if line.startswith('"' + 'IPAddress') and not found:
-                address = line[IPAddress_string_start_position:]
-                address = address[:IPAddress_string_end_position]
-                if address == r"":
-                    found = False
-                else:
-                    ips.append(address)
-                    found = True
-    return ips
+def remove_volume(volume_id: str, *opts: str) -> int:
+    """
+    Removes a volume. 
+    Args:
+        opts (args): list of arguments to be added to the remove_volume call.
+    Returns:
+        int: The process' exit signal.
+    """
+    args = ["docker", "volume", "rm", volume_id] + list(opts)
+    return subprocess.call(args)
 
-def get_network_name_by_id(id):
-    first_instance_name = get_instance_names_by_id(id)[0]
-    raw_inspect = inspect(first_instance_name)
-    inspect_lines = raw_inspect.split('\n')
-    networkID = ""
-    found = False
-    for line in inspect_lines:
-        line = line.strip()
-        if line.startswith('"' + 'NetworkID') and not found:
-            networkID = line[networkID_string_start_position:]
-            networkID = networkID[:networkID_string_end_position]
-            found = True
-    return networkID
 
-def get_ip_by_name(name):
-    raw_inspect = inspect(name)
-    inspect_lines = raw_inspect.split('\n')
-    address = ""
-    found = False
-    for line in inspect_lines:
-        line = line.strip()
-        if line.startswith('"' + 'IPAddress') and not found:
-            address = line[IPAddress_string_start_position:]
-            address = address[:IPAddress_string_end_position]
-            if address == r"":
-                found = False
-            else:
-                found = True
-    return address
+def cp(*opts: str) -> int:
+    """
+    Copies files from instances to containers and vice versa
+    Args:
+        opts (args): list of arguments to be added to the cp call.
+    Returns:
+        int: The process' exit signal.
+    """
+    args = ["docker", "cp"] + list(opts)
+    return subprocess.call(args)
 
+
+def create_network(*opts: str) -> int:
+    """
+    Creates a network with the given parameters
+    Args:
+        opts (args): list of arguments to be added to the create_network call.
+    Returns:
+        int: The process' exit signal.
+    """
+    args = ["docker", "network", "create", "--driver", "bridge"] + list(opts)
+    return subprocess.call(args)
+
+
+def remove_network(*opts: str) -> int:
+    """
+    Removes a network with the given parameter.
+    Args:
+        opts (args): list of arguments to be added to the remove_network call.
+    Returns:
+        int: The process' exit signal.
+    """
+    args = ["docker", "network", "rm"] + list(opts)
+    return subprocess.call(args)
+
+
+def get_instance_names_by_id(image_id: str) -> List[str]:
+    """
+    Returns the nameIsso quer dizer que eu estou dentro do prazo estipulado? of the containers running an image by image id.
+    Args:
+        image_id (str): the id of the image.
+    Returns:
+        List[str]: a list of the ids of the  containers with that image.
+    """
+    return ps("--filter", "ancestor=" + image_id)
+
+
+def _is_ip_line(line: str) -> bool:
+    return line.strip().startswith('\"IPAddress')
+
+def get_ips_by_id(image_id: str) -> list[str]:
+    """
+    retuns the ips from containers running an image by image id.
+    Args:
+        image_id(str): the image id of the containers whose ips
+        we return.
+    Returns:
+        list(str): a list of the ips.
+    """
+    container_names = get_instance_names_by_id(image_id)
+    ip_lines = [
+            list(filter(
+                _is_ip_line,
+                inspect(container_id).split("\n")
+            )).pop()
+            for container_id in container_names]
+    return [ip_line.split()[-1].strip("\"") for ip_line in ip_lines]
