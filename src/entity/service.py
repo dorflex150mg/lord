@@ -1,6 +1,7 @@
 """
 Service Module
 """
+
 from typing import Dict
 
 import uuid
@@ -19,8 +20,8 @@ from util import consts
 class Service(BaseModel):
     """
     Service Base Model class. It represents an application service that spams across
-    multiple nodes. These nodes will have instances of the application. It also 
-    contains the Load Balancers that control traffic to the application. It has an 
+    multiple nodes. These nodes will have instances of the application. It also
+    contains the Load Balancers that control traffic to the application. It has an
     id and a name.
     Attributes:
         service_id (str): The unique id of the service.
@@ -36,6 +37,15 @@ class Service(BaseModel):
     nodes: Dict[str, Node] = {}
     load_balancers: Dict[str, LoadBalancer] = {}
 
+    @classmethod
+    def new(cls) -> "Service":
+        """
+        Creates a new service with random name and id.
+        Returns:
+            Service: the new Service.
+        """
+        return Service(service_id=str(uuid.uuid4()), name=NameGenerator.generate_name())
+
     def add_instance(self) -> str:
         """
         Adds an instance to this Service. The instance's node
@@ -47,21 +57,24 @@ class Service(BaseModel):
             ValueError: if the instance does not have a valid node id.
         """
         if len(self.instances) >= consts.MAX_INSTANCES:
-            raise ValueError(f"Service {self.name} has the maximum instance "
-                             f"count and cannot add another instance.")
-        new_instance = Instance(id=str(uuid.uuid4()),
-                                name=NameGenerator.generate_name(),
-                                node_id=scheduler.get_next(list(self.nodes.values())))
+            raise ValueError(
+                f"Service {self.name} has the maximum instance "
+                f"count and cannot add another instance."
+            )
+        new_instance = Instance(
+            instance_id=str(uuid.uuid4()),
+            name=NameGenerator.generate_name(),
+            node_id=scheduler.get_next(list(self.nodes.values())),
+        )
         self.nodes[new_instance.node_id].add_instance(new_instance)
-        self.instances[new_instance.id] = new_instance
-        return new_instance.id
-
+        self.instances[new_instance.instance_id] = new_instance
+        return new_instance.instance_id
 
     def remove_instance(self, instance_id: str) -> bool:
         """
         Removes an instance from the service and from the node it has
         been scheduled to.
-        Args: 
+        Args:
             instance_id (str): the id of the instance to remove.
         Raises:
             IndexError: if there are no instances to remove.
@@ -69,7 +82,9 @@ class Service(BaseModel):
             bool: True if the instance existed in this service.
         """
         if not self.instances:
-            raise IndexError(f"There are no instances to remove from Service {self.name}")
+            raise IndexError(
+                f"There are no instances to remove from Service {self.name}"
+            )
         if self.instances.pop(instance_id):
             for node in self.nodes.values():
                 if instance_id in node.instances:
@@ -77,21 +92,24 @@ class Service(BaseModel):
             return True
         return False
 
-
     def add_node(self, node: Node) -> None:
         """
         Adds a new node to this service.
-        Args: 
+        Args:
             node (Node): The node to be added.
         Raises:
             ValueError: if the number of instances is past the maximum.
             ValueError: if the node already exists in this Service.
         """
         if len(self.nodes) >= consts.MAX_NODES:
-            raise ValueError(f"Service {self.name} has the maximum node "
-                             f"count and cannot add node {node.name} ")
+            raise ValueError(
+                f"Service {self.name} has the maximum node "
+                f"count and cannot add node {node.name} "
+            )
         if node in self.nodes:
-            raise ValueError(f"Node {node.name} is already scheduled to Service {self.name}")
+            raise ValueError(
+                f"Node {node.name} is already scheduled to Service {self.name}"
+            )
         self.nodes[node.id] = node
 
     def remove_node(self, node_id: str) -> bool:
@@ -119,10 +137,11 @@ class Service(BaseModel):
             ValueError: If the number of load_balancers is past the maximum.
         """
         if len(self.load_balancers) >= consts.MAX_LOAD_BALANCERS:
-            raise ValueError(f"Service {self.name} has the maximum load_balancer "
-                             f"count and cannot add load_balancer {load_balancer.name} ")
+            raise ValueError(
+                f"Service {self.name} has the maximum load_balancer "
+                f"count and cannot add load_balancer {load_balancer.name} "
+            )
         self.load_balancers[load_balancer.id] = load_balancer
-
 
     def remove_load_balancer(self, load_balancer_id: str) -> bool:
         """

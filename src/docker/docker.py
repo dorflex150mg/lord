@@ -2,6 +2,7 @@
 Module containing docker bindings. This high-level module
 Simply makes subprocess calls to the docker CLI.
 """
+
 from typing import Dict, List
 import subprocess
 
@@ -21,6 +22,7 @@ NETWORKID_STRING_END_POSITION = -2
 IPADDRESS_STRING_START_POSITION = 14
 IPADDRESS_STRING_END_POSITION = -2
 
+
 def build(tag_name: str, *opts: str) -> int:
     """
     Builds an image with the given parameters (quiet mode by default)
@@ -36,7 +38,7 @@ def build(tag_name: str, *opts: str) -> int:
 
 def rmi(image_id: str, *opts: str) -> int:
     """
-    Removes an image with the given parameters. 
+    Removes an image with the given parameters.
     Forcefully removes containers running with that image.
     Args:
         image_id (str): the id of the image to be removed.
@@ -89,7 +91,7 @@ def rm(container_id: str, *opts: str) -> int:
 
 def stop(container_id: str, *opts: str) -> int:
     """
-    Stops a running container. 
+    Stops a running container.
     Args:
         opts (args): list of arguments to be added to the stop call.
     Returns:
@@ -101,23 +103,26 @@ def stop(container_id: str, *opts: str) -> int:
 
 def ps(*opts: str) -> List[str]:
     """
-    Lists the containers running currently. Removes the first and last elements. 
+    Lists the containers running currently. Removes the first and last elements.
     Args:
         opts (args): list of arguments to be added to the ps call.
     Returns:
-        List[str]: A list with the docker id of the containers running 
+        List[str]: A list with the docker id of the containers running
         in this node.
     """
     args = ["docker", "ps", "-q"] + list(opts)
-    return subprocess.check_output(args, stderr=subprocess.STDOUT).decode().split(sep='\n')
+    return (
+        subprocess.check_output(args, stderr=subprocess.STDOUT).decode().split(sep="\n")
+    )
+
 
 def images(*opts: str) -> int:
     """
-    Lists the docker images stored on this node. 
+    Lists the docker images stored on this node.
     Args:
         opts (args): list of arguments to be added to the images call.
     Returns:
-        List[str]: A list with the docker id of the images stored 
+        List[str]: A list with the docker id of the images stored
         in this node.
     """
     args = ["docker", "images"] + list(opts) + list(opts)
@@ -130,7 +135,7 @@ def inspect(resource_id: str, *opts: str) -> str:
     Args:
         opts (args): list of arguments to be added to the inspect call.
     Returns:
-        str: a string with the the output of the inspect call. 
+        str: a string with the the output of the inspect call.
     """
     args = ["docker", "inspect", resource_id] + list(opts)
     return subprocess.check_output(args, stderr=subprocess.STDOUT).decode()
@@ -158,7 +163,7 @@ def create_volume(host_path: str, container_path: str, *opts: str) -> int:
 
 def remove_volume(volume_id: str, *opts: str) -> int:
     """
-    Removes a volume. 
+    Removes a volume.
     Args:
         opts (args): list of arguments to be added to the remove_volume call.
     Returns:
@@ -216,7 +221,8 @@ def get_instance_names_by_id(image_id: str) -> List[str]:
 
 
 def _is_ip_line(line: str) -> bool:
-    return line.strip().startswith('\"IPAddress')
+    return line.strip().startswith('"IPAddress')
+
 
 def get_ips_by_id(image_id: str) -> list[str]:
     """
@@ -229,9 +235,7 @@ def get_ips_by_id(image_id: str) -> list[str]:
     """
     container_names = get_instance_names_by_id(image_id)
     ip_lines = [
-            list(filter(
-                _is_ip_line,
-                inspect(container_id).split("\n")
-            )).pop()
-            for container_id in container_names]
-    return [ip_line.split()[-1].strip("\"") for ip_line in ip_lines]
+        list(filter(_is_ip_line, inspect(container_id).split("\n"))).pop()
+        for container_id in container_names
+    ]
+    return [ip_line.split()[-1].strip('"') for ip_line in ip_lines]

@@ -18,13 +18,14 @@ class Node(BaseModel):
     Attributes:
         id (str): the unique id.
         name (str): the human-readable name.
-        node_network (NodeNetwork): a dataclass containing the network information 
+        node_network (NodeNetwork): a dataclass containing the network information
         for that node.
-        instances (Dict[str, Instance]): The application instances scheduled 
+        instances (Dict[str, Instance]): The application instances scheduled
         to this node.
     """
+
     id: str = Field(..., min_length=1)
-    name: str =  Field(..., min_length=1)
+    name: str = Field(..., min_length=1)
     node_network: NodeNetwork
     instances: Dict[str, Instance] = {}
 
@@ -35,8 +36,10 @@ class Node(BaseModel):
             instance (Instance): The instance to be added.
         """
         if len(self.instances) >= consts.MAX_INSTANCES:
-            raise ValueError(f"Node {self.name} has the maximum instance "
-                             f"count and cannot add instance {instance.name} ")
+            raise ValueError(
+                f"Node {self.name} has the maximum instance "
+                f"count and cannot add instance {instance.name} "
+            )
         self.instances[instance.id] = instance
 
     def remove_instance(self, instance_id: str) -> bool:

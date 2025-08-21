@@ -1,9 +1,11 @@
 """
-This module provides methods to assist on the scheduling 
+This module provides methods to assist on the scheduling
 of a service's nodes.
 """
+
 from typing import List
 from entity.node import Node
+
 
 def get_next(nodes: List[Node]) -> str:
     """

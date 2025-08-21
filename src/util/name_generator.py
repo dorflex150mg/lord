@@ -5,17 +5,18 @@ This module contains the singleton NameGenerator class.
 from typing import List, Optional
 import random
 
+
 class NameGenerator:
     """
-    Generates random human-readable names combining strings 
-    from `resources/adjectives.txt` and `resources/names.txt` 
+    Generates random human-readable names combining strings
+    from `resources/adjectives.txt` and `resources/names.txt`
     to semi-uniquely identifies entities.
     Attributes:
         names (List[str]): Given Names in English.
         adjective (List[str]): Positive Adjectives in English.
     """
 
-    singleton: Optional['NameGenerator']
+    singleton: Optional["NameGenerator"]
 
     names: List[str]
     adjective: List[str]
@@ -30,7 +31,6 @@ class NameGenerator:
         if not cls.singleton:
             cls.singleton = NameGenerator()
         return cls.singleton._generate_name()
-
 
     def __init__(self):
         with open("resources/names.txt", "r", encoding="ascii") as f_names:
