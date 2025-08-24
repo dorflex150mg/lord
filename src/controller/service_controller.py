@@ -17,7 +17,7 @@ class ServiceController(BaseModel):
     services: Dict[str, Service] = {}
 
 
-    def add_service(self, service: Service):
+    def add_service(self, service: Service) -> str:
         """
         Adds a service to the ServiceController.
         Args:
@@ -26,6 +26,7 @@ class ServiceController(BaseModel):
         if service.service_id in self.services:
             raise ValueError(f"Service {service.name} already exists.")
         self.services[service.service_id] = service
+        return service.service_id
 
     def remove_service(self, string: str) -> bool:
         """

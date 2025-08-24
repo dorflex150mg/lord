@@ -2,10 +2,10 @@
 CLI for Lord. Communicates with the control plane via RabbitMQ
 """
 
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
+import uuid
 import argparse
 import pika
-import uuid
 from pika import BasicProperties
 import msgpack
 from pika.adapters.blocking_connection import BlockingChannel
@@ -29,7 +29,7 @@ class Connection:
         return cls.connection
 
 
-def get_service_id(channel, method, properties, body) -> None:
+def get_service_id(channel: Any, method: Any, properties, body) -> None:
     Connection.response_slot = body
     print(body.decode())
 
