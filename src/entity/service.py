@@ -33,18 +33,19 @@ class Service(BaseModel):
 
     service_id: str = Field(..., min_length=1)
     name: str = Field(..., min_length=1)
+    image_name: str = Field(..., min_length=1)
     instances: Dict[str, Instance] = {}
     nodes: Dict[str, Node] = {}
     load_balancers: Dict[str, LoadBalancer] = {}
 
     @classmethod
-    def new(cls) -> "Service":
+    def new(cls, image_name) -> "Service":
         """
         Creates a new service with random name and id.
         Returns:
             Service: the new Service.
         """
-        return Service(service_id=str(uuid.uuid4()), name=NameGenerator.generate_name())
+        return Service(service_id=str(uuid.uuid4()), image_name=image_name, name=NameGenerator.generate_name())
 
     def add_instance(self) -> str:
         """

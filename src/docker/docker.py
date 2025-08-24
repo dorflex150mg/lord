@@ -5,6 +5,9 @@ Simply makes subprocess calls to the docker CLI.
 
 from typing import Dict, List
 import subprocess
+import os
+
+DOCKERFILE_SOURCES = os.getcwd()
 
 ps_values: Dict[str, int] = {
     "CONTAINER_ID": 0,
@@ -33,7 +36,10 @@ def build(tag_name: str, *opts: str) -> int:
     """
     args = ["docker", "build", "-t", tag_name] + list(opts)
     args.append(".")
-    return subprocess.call(args)
+    path = f"{DOCKERFILE_SOURCES}/{tag_name}"
+    if not os.path.isdir(path):
+        os.mkdir(path)
+    return subprocess.call(args, cwd=path)
 
 
 def rmi(image_id: str, *opts: str) -> int:
@@ -59,7 +65,7 @@ def run(image_id: str, *opts: str) -> int:
     Returns:
         int: The process' exit signal.
     """
-    args = ["docker", "run"] + list(opts)
+    args = ["docker", "run", "-d"] + list(opts)
     args.append(image_id)
     return subprocess.call(args)
 

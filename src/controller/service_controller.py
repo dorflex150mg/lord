@@ -1,10 +1,13 @@
 """
 This Module contains the Service Controller class.
 """
+import time
 from typing import Dict
 from pydantic import BaseModel
 from entity.service import Service
+from src.docker import docker
 
+BACKOFF = 1 # 1 second.
 
 class ServiceController(BaseModel):
     """
@@ -23,6 +26,7 @@ class ServiceController(BaseModel):
         Args:
             service (Service): The service to be added.
         """
+        docker.build(service.image_name)
         if service.service_id in self.services:
             raise ValueError(f"Service {service.name} already exists.")
         self.services[service.service_id] = service
@@ -59,6 +63,7 @@ class ServiceController(BaseModel):
         Returns:
             str: the id of the new instance created.
         """
+        docker.run(self.services[service_id].image_name)
         return self.services[service_id].add_instance()
 
     def remove_instance_from_service(self, instance_id: str, service_id: str):
@@ -73,3 +78,7 @@ class ServiceController(BaseModel):
         if not self.services:
             raise IndexError("There are no services created.")
         self.services[service_id].remove_instance(instance_id)
+        while instance_id in docker.ps():
+            docker.stop(instance_id)
+            time.sleep(BACKOFF)
+        docker.rm(instance_id)

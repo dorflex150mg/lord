@@ -2,6 +2,7 @@
 ControlPlane and main.
 """
 from typing import Any
+import json
 import pika
 from pika.adapters.blocking_connection import BlockingChannel
 from pika import BasicProperties
@@ -29,7 +30,8 @@ class ControlPlane:
             routing key.
             body (bytes): empty body.
         """
-        service_id = self.service_controller.add_service(Service.new())
+        reply = json.loads(body.decode())
+        service_id = self.service_controller.add_service(Service.new(image_name=reply["image_name"]))
         channel.basic_publish(exchange="", routing_key=properties.reply_to, body=service_id.encode())
         channel.basic_ack(delivery_tag=method.delivery_tag)
 

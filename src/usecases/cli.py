@@ -54,7 +54,7 @@ def create_service(args):
     listen_to_service_id(channel, callback_queue)  # waits for the service id
 
     channel.queue_declare(queue="create_service")
-    service_data: Dict[str, str] = {"name": args.name}
+    service_data: Dict[str, str] = {"service_name": args.service_name}
     channel.basic_publish(
         exchange="",
         routing_key="create_service",
@@ -82,7 +82,7 @@ def main():
     service_parser = create_subparsers.add_parser("service", help="Creates a service.")
     service_name_subparser = service_parser.add_subparsers()
     service_name_parser = service_name_subparser.add_parser(
-        "--name", help="Sets the name."
+        "--service_name", help="Sets the name."
     )
     service_name_parser.add_argument("service_name", type=str)
     service_name_parser.set_defaults(func=create_service)
