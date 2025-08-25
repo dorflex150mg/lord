@@ -1,24 +1,26 @@
 """
 This Module contains the Service Controller class.
 """
+
 import time
-from typing import Dict
+from typing import Dict, List
 from pydantic import BaseModel
 from entity.service import Service
 from src.docker import docker
 
-BACKOFF = 1 # 1 second.
+BACKOFF = 1  # 1 second.
+
 
 class ServiceController(BaseModel):
     """
     The ServiceController creates and removes services, as well
-    as adding new Instances and removing them from existing 
+    as adding new Instances and removing them from existing
     Services.
     Attributes:
         services (Dict[str, Service]): Current running Services.
     """
-    services: Dict[str, Service] = {}
 
+    services: Dict[str, Service] = {}
 
     def add_service(self, service: Service) -> str:
         """
@@ -47,9 +49,11 @@ class ServiceController(BaseModel):
         if string in self.services:
             self.services.pop(string)
             return True
-        matching_service = [service.service_id for service
-                            in self.services.values()
-                            if service.name == string]
+        matching_service = [
+            service.service_id
+            for service in self.services.values()
+            if service.name == string
+        ]
         if matching_service:
             self.services.pop(set(matching_service).pop())
             return True
@@ -58,7 +62,7 @@ class ServiceController(BaseModel):
     def add_instance_to_service(self, service_id: str) -> str:
         """
         Adds an instance to an existing service.
-        Args: 
+        Args:
             service_id (str): The id of the service to gain a new instance.
         Returns:
             str: the id of the new instance created.
@@ -82,3 +86,11 @@ class ServiceController(BaseModel):
             docker.stop(instance_id)
             time.sleep(BACKOFF)
         docker.rm(instance_id)
+
+    def list_services(self) -> List[str]:
+        """
+        Lists this ServiceController's Service's ids.
+        Returns:
+            List[str]: A list containing the Service ids.
+        """
+        return list(self.services.keys())

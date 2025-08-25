@@ -1,6 +1,7 @@
 """
 ControlPlane and main.
 """
+
 from typing import Any
 import json
 import pika
@@ -18,7 +19,7 @@ class ControlPlane:
     service_controller: ServiceController = ServiceController()
 
     def on_create_service(
-            self, channel: BlockingChannel, method: Any, properties: BasicProperties, body
+        self, channel: BlockingChannel, method: Any, properties: BasicProperties, body
     ):
         """
         Callback for the `create_service` endpoint.
@@ -31,37 +32,10 @@ class ControlPlane:
             body (bytes): empty body.
         """
         reply = json.loads(body.decode())
-        service_id = self.service_controller.add_service(Service.new(image_name=reply["image_name"]))
-        channel.basic_publish(exchange="", routing_key=properties.reply_to, body=service_id.encode())
+        service_id = self.service_controller.add_service(
+            Service.new(image_name=reply["image_name"])
+        )
+        channel.basic_publish(
+            exchange="", routing_key=properties.reply_to, body=service_id.encode()
+        )
         channel.basic_ack(delivery_tag=method.delivery_tag)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

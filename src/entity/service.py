@@ -45,7 +45,11 @@ class Service(BaseModel):
         Returns:
             Service: the new Service.
         """
-        return Service(service_id=str(uuid.uuid4()), image_name=image_name, name=NameGenerator.generate_name())
+        return Service(
+            service_id=str(uuid.uuid4()),
+            image_name=image_name,
+            name=NameGenerator.generate_name(),
+        )
 
     def add_instance(self) -> str:
         """
