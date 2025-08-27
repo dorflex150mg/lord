@@ -7,7 +7,7 @@ from typing import Dict, List
 import subprocess
 import os
 
-DOCKERFILE_SOURCES = os.getcwd()
+DOCKERFILE_SOURCES = f"{os.getcwd()}/resources/Dockerfiles"
 
 ps_values: Dict[str, int] = {
     "CONTAINER_ID": 0,
@@ -26,7 +26,7 @@ IPADDRESS_STRING_START_POSITION = 14
 IPADDRESS_STRING_END_POSITION = -2
 
 
-def build(tag_name: str, *opts: str) -> int:
+def build(tag_name: str, *opts: str) -> str:
     """
     Builds an image with the given parameters (quiet mode by default)
     Args:
@@ -34,12 +34,12 @@ def build(tag_name: str, *opts: str) -> int:
     Returns:
         int: The process' exit signal.
     """
-    args = ["docker", "build", "-t", tag_name] + list(opts)
+    args = ["docker", "build", "-q", "-t", tag_name] + list(opts)
     args.append(".")
     path = f"{DOCKERFILE_SOURCES}/{tag_name}"
     if not os.path.isdir(path):
         os.mkdir(path)
-    return subprocess.call(args, cwd=path)
+    return subprocess.check_output(args, cwd=path).decode()
 
 
 def rmi(image_id: str, *opts: str) -> int:
@@ -78,7 +78,7 @@ def run_get_name(*opts: str) -> str:
     Returns:
         str: The newly created docker container name.
     """
-    args = ["docker", "run"] + list(opts)
+    args = ["docker", "run", "-d", "-q"] + list(opts)
     return subprocess.check_output(args, stderr=subprocess.STDOUT).decode()
 
 

@@ -4,7 +4,7 @@ of a service's nodes.
 """
 
 from typing import List
-from entity.node import Node
+from src.entity.node import Node
 
 
 def get_next(nodes: List[Node]) -> str:
@@ -14,4 +14,6 @@ def get_next(nodes: List[Node]) -> str:
         nodes: The service's nodes.
     """
     nodes.sort(key=lambda node: len(node.instances))
-    return nodes[0].id
+    if not nodes:
+        raise ValueError("No nodes available.")
+    return nodes[0].node_id

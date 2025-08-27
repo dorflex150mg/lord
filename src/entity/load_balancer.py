@@ -5,8 +5,8 @@ Module containing the LoadBalancer BaseModel
 from typing import List, Optional
 from pydantic import BaseModel, Field, ValidationError, field_validator
 
-from instance import Instance
-from util import consts
+from src.entity.instance import Instance
+from src.util import consts
 
 
 class LoadBalancer(BaseModel):  # pylint: disable=too-few-public-methods

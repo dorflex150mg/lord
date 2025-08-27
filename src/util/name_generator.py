@@ -16,7 +16,7 @@ class NameGenerator:
         adjective (List[str]): Positive Adjectives in English.
     """
 
-    singleton: Optional["NameGenerator"]
+    singleton: Optional["NameGenerator"] = None
 
     names: List[str]
     adjective: List[str]
@@ -30,7 +30,7 @@ class NameGenerator:
         """
         if not cls.singleton:
             cls.singleton = NameGenerator()
-        return cls.singleton._generate_name()
+        return cls.singleton._generate_name()  # pylint: disable=protected-access
 
     def __init__(self):
         with open("resources/names.txt", "r", encoding="ascii") as f_names:

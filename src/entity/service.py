@@ -2,19 +2,19 @@
 Service Module
 """
 
-from typing import Dict
+from typing import Dict, Optional
 
 import uuid
-
-
-from node import Node
-from load_balancer import LoadBalancer
-from instance import Instance
 from pydantic import BaseModel, Field
-from scheduler import scheduler
-from util.name_generator import NameGenerator
 
-from util import consts
+from src.entity.node import Node, NodeNetwork
+from src.entity.load_balancer import LoadBalancer
+from src.entity.instance import Instance
+from src.scheduler import scheduler
+from src.util.name_generator import NameGenerator
+
+from src.util import consts
+from src.util import network
 
 
 class Service(BaseModel):
@@ -39,19 +39,17 @@ class Service(BaseModel):
     load_balancers: Dict[str, LoadBalancer] = {}
 
     @classmethod
-    def new(cls, image_name) -> "Service":
+    def new(
+        cls, image_name: str, name: str = NameGenerator.generate_name()
+    ) -> "Service":
         """
         Creates a new service with random name and id.
         Returns:
             Service: the new Service.
         """
-        return Service(
-            service_id=str(uuid.uuid4()),
-            image_name=image_name,
-            name=NameGenerator.generate_name(),
-        )
+        return Service(service_id=str(uuid.uuid4()), image_name=image_name, name=name)
 
-    def add_instance(self) -> str:
+    def add_instance(self, instance_id: Optional[str] = None) -> str:
         """
         Adds an instance to this Service. The instance's node
         id is used to determine to which node it should go.
@@ -66,8 +64,20 @@ class Service(BaseModel):
                 f"Service {self.name} has the maximum instance "
                 f"count and cannot add another instance."
             )
+        if not self.nodes:
+            self.add_node(
+                Node(
+                    node_id=str(uuid.uuid4()),
+                    name="ControlPlaneNode",
+                    node_network=NodeNetwork(
+                        ipv4=network.get_local_ipv4(), ipv6=network.get_local_ipv6()
+                    ),
+                )
+            )
+        if not instance_id:
+            instance_id = str(uuid.uuid4())
         new_instance = Instance(
-            instance_id=str(uuid.uuid4()),
+            instance_id=instance_id,
             name=NameGenerator.generate_name(),
             node_id=scheduler.get_next(list(self.nodes.values())),
         )
@@ -115,7 +125,7 @@ class Service(BaseModel):
             raise ValueError(
                 f"Node {node.name} is already scheduled to Service {self.name}"
             )
-        self.nodes[node.id] = node
+        self.nodes[node.node_id] = node
 
     def remove_node(self, node_id: str) -> bool:
         """

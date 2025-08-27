@@ -5,10 +5,10 @@ Module containing the Node Base Model
 from typing import Dict
 
 from pydantic import BaseModel, Field
-from instance import Instance
-from network.node_network import NodeNetwork
+from src.entity.instance import Instance
+from src.network.node_network import NodeNetwork
 
-from util import consts
+from src.util import consts
 
 
 class Node(BaseModel):
@@ -24,10 +24,20 @@ class Node(BaseModel):
         to this node.
     """
 
-    id: str = Field(..., min_length=1)
+    node_id: str = Field(..., min_length=1)
     name: str = Field(..., min_length=1)
     node_network: NodeNetwork
     instances: Dict[str, Instance] = {}
+
+    model_config = {"frozen": True}  # makes fields immutable by default
+
+    def __hash__(self) -> int:
+        return hash(self.node_id)
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, Node):
+            return False
+        return self.node_id == other.node_id
 
     def add_instance(self, instance: Instance) -> None:
         """
@@ -40,7 +50,7 @@ class Node(BaseModel):
                 f"Node {self.name} has the maximum instance "
                 f"count and cannot add instance {instance.name} "
             )
-        self.instances[instance.id] = instance
+        self.instances[instance.instance_id] = instance
 
     def remove_instance(self, instance_id: str) -> bool:
         """
