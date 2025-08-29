@@ -5,10 +5,13 @@ This Module contains the Service Controller class.
 import time
 from typing import Dict, List
 from pydantic import BaseModel
-from entity.service import Service
+from src.entity.service import Service
 from src.docker import docker
 
 BACKOFF = 1  # 1 second.
+
+ID_STRING_OFFSET = 7
+ID_STRING_LENGTH = 12
 
 
 class ServiceController(BaseModel):
@@ -27,12 +30,16 @@ class ServiceController(BaseModel):
         Adds a service to the ServiceController.
         Args:
             service (Service): The service to be added.
+        Returns:
+            the image_id the build command generates.
         """
-        docker.build(service.image_name)
         if service.service_id in self.services:
             raise ValueError(f"Service {service.name} already exists.")
+        image_id = docker.build(service.image_name)
         self.services[service.service_id] = service
-        return service.service_id
+        return image_id[
+            ID_STRING_OFFSET : ID_STRING_OFFSET + ID_STRING_LENGTH
+        ]  # Shortened version of the container id.
 
     def remove_service(self, string: str) -> bool:
         """
@@ -67,12 +74,14 @@ class ServiceController(BaseModel):
         Returns:
             str: the id of the new instance created.
         """
-        docker.run(self.services[service_id].image_name)
-        return self.services[service_id].add_instance()
+        instance_id = docker.run_get_name(self.services[service_id].image_name)[
+            :ID_STRING_LENGTH
+        ]
+        return self.services[service_id].add_instance(instance_id)
 
-    def remove_instance_from_service(self, instance_id: str, service_id: str):
+    def remove_instance_from_service(self, instance_id: str, service_id: str) -> None:
         """
-        Removes an instance from a service.
+        Removes an instance from a service and kills the container.
         Args:
             instance_id (str): The id of the instance to be removed.
             service_id (str): The id of the service the instance must be removed from.

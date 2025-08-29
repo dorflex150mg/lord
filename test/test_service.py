@@ -50,6 +50,13 @@ class ServiceControllerTest(unittest.TestCase):
             for container_id in subprocess.check_output(["docker", "ps", "-q"]).split()
         ]
         assert instance_id in container_ids
+        service_controller.remove_instance_from_service(instance_id, service.service_id)
+        container_ids = [
+            container_id.decode()
+            for container_id in subprocess.check_output(["docker", "ps", "-q"]).split()
+        ]
+        assert instance_id not in container_ids
+        assert instance_id not in service.instances
 
 
 if __name__ == "__main__":
