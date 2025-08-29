@@ -58,6 +58,15 @@ class ServiceControllerTest(unittest.TestCase):
         assert instance_id not in container_ids
         assert instance_id not in service.instances
 
+    def test_list_services(self) -> None:
+        service_controller = ServiceController()
+        service = Service.new(
+            image_name="ubuntu-example", name="test_list_service"
+        )
+        service_controller.add_service(service)
+        assert service.service_id in service_controller.list_services()
+        service_controller.remove_service(service.service_id)
+        assert service.service_id not in service_controller.list_services()
 
 if __name__ == "__main__":
     unittest.main()

@@ -79,7 +79,7 @@ class ServiceController(BaseModel):
         ]
         return self.services[service_id].add_instance(instance_id)
 
-    def remove_instance_from_service(self, instance_id: str, service_id: str) -> None:
+    def remove_instance_from_service(self, instance_id: str, service_id: str) -> bool:
         """
         Removes an instance from a service and kills the container.
         Args:
@@ -94,7 +94,9 @@ class ServiceController(BaseModel):
         while instance_id in docker.ps():
             docker.stop(instance_id)
             time.sleep(BACKOFF)
-        docker.rm(instance_id)
+        if docker.rm(instance_id) == 0:
+            return True
+        return False
 
     def list_services(self) -> List[str]:
         """
